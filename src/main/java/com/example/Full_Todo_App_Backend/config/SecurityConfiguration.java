@@ -23,7 +23,7 @@ public class SecurityConfiguration {
         http
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/", "/index.html", "/static/**",
-                                "/*.ico", "/*.json", "/*.png", "/api/user").permitAll()
+                                "/*.ico", "/*.json", "/*.png", "/api/v1/user").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf((csrf) -> csrf
