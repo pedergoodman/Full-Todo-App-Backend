@@ -1,10 +1,8 @@
 package com.example.Full_Todo_App_Backend.controller;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.Full_Todo_App_Backend.model.User;
 import com.example.Full_Todo_App_Backend.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,17 +35,25 @@ public class UserController {
     @GetMapping("/user")
     public ResponseEntity<?> getUser(@AuthenticationPrincipal OAuth2User user) {
         if (user == null) {
-            return new ResponseEntity<>("", HttpStatus.OK);
+            return ResponseEntity.ok().body("");
         } else {
+
+            // checks if user is in the database, if not add them, return user details
+            User currentUser = userService.checkAndSaveAuthenticatedUser(user);
+
             // this is where we would connect it to the DB!
-            return ResponseEntity.ok().body(user.getAttributes());
+            return ResponseEntity.ok().body(currentUser);
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, @AuthenticationPrincipal(expression = "idToken") OidcIdToken idToken) {
+    public ResponseEntity<?> logout(HttpServletRequest request,
+            @AuthenticationPrincipal(expression = "idToken") OidcIdToken idToken) {
         // send logout URL to client so they can initiate logout
-        String logoutUrl = this.registration.getProviderDetails().getConfigurationMetadata().get("end_session_endpoint").toString();
+        String logoutUrl = this.registration.getProviderDetails().getConfigurationMetadata().get("end_session_endpoint")
+                .toString();
+
+        System.out.println("LogoutURL: " + logoutUrl);
 
         Map<String, String> logoutDetails = new HashMap<>();
         logoutDetails.put("logoutUrl", logoutUrl);
@@ -57,7 +64,4 @@ public class UserController {
         return ResponseEntity.ok().body(logoutDetails);
     }
 
-
 }
-
-
