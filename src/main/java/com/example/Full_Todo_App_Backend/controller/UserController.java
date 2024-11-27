@@ -1,6 +1,5 @@
 package com.example.Full_Todo_App_Backend.controller;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,19 +16,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.Full_Todo_App_Backend.service.UserService;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController()
-@RequestMapping("/api/v1")
+@RequestMapping("/api")
 public class UserController {
     private final ClientRegistration registration;
-    private final UserService userService;
 
-    public UserController(ClientRegistrationRepository registrations, UserService userService) {
+    public UserController(ClientRegistrationRepository registrations) {
         this.registration = registrations.findByRegistrationId("okta");
-        this.userService = userService;
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
@@ -38,15 +33,20 @@ public class UserController {
         if (user == null) {
             return new ResponseEntity<>("", HttpStatus.OK);
         } else {
-            // this is where we would connect it to the DB!
+            // ** This is is where we would connect it to the DB! **
+
+            // default return is the user's attributes from Okta
             return ResponseEntity.ok().body(user.getAttributes());
+
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, @AuthenticationPrincipal(expression = "idToken") OidcIdToken idToken) {
+    public ResponseEntity<?> logout(HttpServletRequest request,
+            @AuthenticationPrincipal(expression = "idToken") OidcIdToken idToken) {
         // send logout URL to client so they can initiate logout
-        String logoutUrl = this.registration.getProviderDetails().getConfigurationMetadata().get("end_session_endpoint").toString();
+        String logoutUrl = this.registration.getProviderDetails().getConfigurationMetadata().get("end_session_endpoint")
+                .toString();
 
         Map<String, String> logoutDetails = new HashMap<>();
         logoutDetails.put("logoutUrl", logoutUrl);
@@ -57,7 +57,4 @@ public class UserController {
         return ResponseEntity.ok().body(logoutDetails);
     }
 
-
 }
-
-
