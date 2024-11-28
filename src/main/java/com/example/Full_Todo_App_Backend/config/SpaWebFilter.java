@@ -4,12 +4,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.security.Principal;
 
 public class SpaWebFilter extends OncePerRequestFilter {
 
@@ -17,12 +14,17 @@ public class SpaWebFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
-        Authentication user = SecurityContextHolder.getContext().getAuthentication();
-        if (user != null && !path.startsWith("/api") && !path.contains(".") && path.matches("/(.*)")) {
-            request.getRequestDispatcher("/").forward(request, response);
+
+        // Allow API requests, static resources, and other asset requests to pass through
+        if (path.startsWith("/api") ||
+            path.startsWith("/static") ||
+            path.contains(".") ||  // Static resources like .css, .js, .png, etc.
+            path.equals("/favicon.ico")) {
+            filterChain.doFilter(request, response);
             return;
         }
 
-        filterChain.doFilter(request, response);
+        // If the request does not match any of the above, forward it to index.html for React routing
+        request.getRequestDispatcher("/index.html").forward(request, response);
     }
 }
