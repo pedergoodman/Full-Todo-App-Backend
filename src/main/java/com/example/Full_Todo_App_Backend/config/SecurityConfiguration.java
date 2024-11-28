@@ -11,9 +11,13 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SimpleSavedRequest;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 
 @Configuration
 public class SecurityConfiguration {
@@ -21,20 +25,44 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests((authz) -> authz
-                        .requestMatchers("/", "/index.html", "/static/**",
-                                "/*.ico", "/*.json", "/*.png", "/api/v1/user").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .csrf((csrf) -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        // https://stackoverflow.com/a/74521360/65681
-                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                )
-                .addFilterAfter(new CookieCsrfFilter(), BasicAuthenticationFilter.class)
-                .addFilterAfter(new SpaWebFilter(), BasicAuthenticationFilter.class)
-                .oauth2Login(Customizer.withDefaults());
+            // Enable CORS and CSRF protection
+            .cors().and().csrf(csrf -> csrf
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+            )
+            // Define authorization rules
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/", "/index.html", "/static/**",
+                                 "/*.ico", "/*.json", "/*.png", "/api/v1/user", "/oauth2/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            // Configure logout
+            .logout(logout -> logout
+                .logoutUrl("/api/logout") // Custom logout endpoint
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.getWriter().write("{\"message\":\"Logged out successfully\"}");
+                    response.getWriter().flush();
+                })
+                .invalidateHttpSession(true)
+                .clearAuthentication(true)
+                .deleteCookies("JSESSIONID", "XSRF-TOKEN")
+            )
+            // Configure OAuth2 login
+            .oauth2Login(Customizer.withDefaults());
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Frontend origin
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true); // Allow cookies to be sent
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
@@ -48,7 +76,6 @@ public class SecurityConfiguration {
                 }
                 request.getSession().setAttribute("SPRING_SECURITY_SAVED_REQUEST",
                         new SimpleSavedRequest(referrer));
-
             }
         };
     }

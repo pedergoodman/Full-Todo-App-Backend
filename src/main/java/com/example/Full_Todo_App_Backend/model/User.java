@@ -10,8 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -25,8 +23,10 @@ public class User {
     private String email;
     private String oktaId;
 
-    // lombok provides all args and no args constructor
-    // this is for everything but the id (and will probably be used most often
+    // No-args constructor
+    public User() {}
+
+    // Constructor for everything but the ID
     public User(String firstName, String lastName, String email, String oktaId) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -38,3 +38,4 @@ public class User {
         return firstName + " " + lastName;
     }
 }
+

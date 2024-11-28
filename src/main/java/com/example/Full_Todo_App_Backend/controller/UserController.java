@@ -20,7 +20,7 @@ import com.example.Full_Todo_App_Backend.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-@RestController()
+@RestController
 @RequestMapping("/api/v1")
 public class UserController {
     private final ClientRegistration registration;
@@ -31,37 +31,41 @@ public class UserController {
         this.userService = userService;
     }
 
+    // Expose the /user endpoint for fetching user data
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/user")
     public ResponseEntity<?> getUser(@AuthenticationPrincipal OAuth2User user) {
         if (user == null) {
-            return ResponseEntity.ok().body("");
-        } else {
-
-            // checks if user is in the database, if not add them, return user details
-            User currentUser = userService.checkAndSaveAuthenticatedUser(user);
-
-            // this is where we would connect it to the DB!
-            return ResponseEntity.ok().body(currentUser);
+            return ResponseEntity.status(401).body("User not authenticated");
         }
+
+        // Check if user exists in the database, if not, save them
+        User currentUser = userService.checkAndSaveAuthenticatedUser(user);
+
+        // Return the authenticated user's details
+        return ResponseEntity.ok(currentUser);
     }
 
+    // Handle logout functionality
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request,
-            @AuthenticationPrincipal(expression = "idToken") OidcIdToken idToken) {
-        // send logout URL to client so they can initiate logout
-        String logoutUrl = this.registration.getProviderDetails().getConfigurationMetadata().get("end_session_endpoint")
-                .toString();
+                                    @AuthenticationPrincipal(expression = "idToken") OidcIdToken idToken) {
+        if (idToken == null) {
+            return ResponseEntity.status(400).body("ID Token is missing");
+        }
 
-        System.out.println("LogoutURL: " + logoutUrl);
+        String logoutUrl = this.registration.getProviderDetails().getConfigurationMetadata()
+                .get("end_session_endpoint").toString();
 
         Map<String, String> logoutDetails = new HashMap<>();
         logoutDetails.put("logoutUrl", logoutUrl);
         logoutDetails.put("idToken", idToken.getTokenValue());
-        request.getSession(false).invalidate();
-        System.out.println("LogoutDetails, logoutURL: " + logoutUrl);
-        System.out.println("LogoutDetails, idToken: " + idToken.getTokenValue());
-        return ResponseEntity.ok().body(logoutDetails);
-    }
 
+        // Invalidate the current session
+        if (request.getSession(false) != null) {
+            request.getSession(false).invalidate();
+        }
+
+        return ResponseEntity.ok(logoutDetails);
+    }
 }
