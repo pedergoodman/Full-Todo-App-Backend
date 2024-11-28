@@ -1,75 +1,109 @@
-# Setting Up and Running the Backend
+# Full Todo App Backend - Setup and Run Guide
 
-Before you can run the backend application, you need to set up a few environment variables for things like the database, Okta OAuth2, and the server port. These environment variables are required to configure the app for your local development environment.
-Step 1: Set Environment Variables
+This guide will help you set up and run the backend for the Full Todo App. Follow these steps to ensure your environment is properly configured.
 
-You need to export the following environment variables to ensure the backend connects correctly with Okta, the database, and other settings.
-Windows Users (Using PowerShell)
+## Table of Contents
+1. Prerequisites
+2. Environment Setup
+   - Windows (PowerShell)
+   - macOS/Linux (Terminal)
+3. Running the Backend
+   - Building and Running
+4. Verifying Installation
+5. Troubleshooting
 
-    Open PowerShell on your computer.
-    Navigate to the directory where your backend project is located.
-    Run the following commands to set the required environment variables:
+---
 
-# Set the Okta OAuth2 settings (Powershell specific I believe)
-$env:OKTA_OAUTH2_ISSUER="https://dev-74889125.okta.com/oauth2/default"
-$env:OKTA_OAUTH2_CLIENT_ID="your-okta-client-id"
-$env:OKTA_OAUTH2_CLIENT_SECRET="your-okta-client-secret"
-$env:OKTA_OAUTH2_SCOPES="openid,profile,offline_access"
+## Prerequisites
 
-# Set the server port
-$env:SERVER_PORT=8080
+- Java 17 or higher
+- Maven (for building the application)
+- Okta Developer Account (for OAuth2 authentication)
+- A Database (PostgreSQL/MySQL or equivalent, if required)
 
-Important: Replace your-okta-client-id and your-okta-client-secret with the actual values from your Okta Developer Console.
-macOS Users (Using Terminal)
+## Environment Setup
 
-    Open Terminal on your macOS machine.
-    Navigate to the directory where your backend project is located.
-    Run the following commands to set the required environment variables:
+Before running the application, you need to set some environment variables for Okta OAuth2, server port, and optional database configuration.
 
-# Set the Okta OAuth2 settings
-export OKTA_OAUTH2_ISSUER="https://dev-74889125.okta.com/oauth2/default"
-export OKTA_OAUTH2_CLIENT_ID="your-okta-client-id"
-export OKTA_OAUTH2_CLIENT_SECRET="your-okta-client-secret"
-export OKTA_OAUTH2_SCOPES="openid,profile,offline_access"
+### Windows (PowerShell)
 
-# Set the server port
-export SERVER_PORT=8080
+1. Open PowerShell.
+2. Navigate to the backend project directory.
+3. Set the required environment variables using the following commands:
 
-Important: Replace your-okta-client-id and your-okta-client-secret with the actual values from your Okta Developer Console.
-Optional: Additional Environment Variables
+   ```powershell
+   # Okta OAuth2 Configuration
+   $env:OKTA_OAUTH2_ISSUER="https://dev-74889125.okta.com/oauth2/default"
+   $env:OKTA_OAUTH2_CLIENT_ID="your-okta-client-id"
+   $env:OKTA_OAUTH2_CLIENT_SECRET="your-okta-client-secret"
+   $env:OKTA_OAUTH2_SCOPES="openid,profile,offline_access"
 
-You can also set additional environment variables if needed, such as the database URL or other settings required by your app. For example:
+   # Server Port Configuration
+   $env:SERVER_PORT=8080
 
-# For macOS/Linux
-export DATABASE_URL="your-database-url"
+   # Optional: Database Configuration
+   $env:DATABASE_URL="your-database-url"
+   ```
 
-# For Windows (PowerShell)
-$env:DATABASE_URL="your-database-url"
+   Replace `your-okta-client-id`, `your-okta-client-secret`, and `your-database-url` with the actual values.
 
-# Step 2: Run the Backend Application
+### macOS/Linux (Terminal)
 
-Once the environment variables are set, you can proceed to build and run the Spring Boot application.
-Building and Running the Backend Application
+1. Open Terminal.
+2. Navigate to the backend project directory.
+3. Set the required environment variables using the following commands:
 
-    Open PowerShell (Windows) or Terminal (macOS) and navigate to the directory containing your project.
-    Run the following commands to build and start the Spring Boot application:
+   ```bash
+   # Okta OAuth2 Configuration
+   export OKTA_OAUTH2_ISSUER="https://dev-74889125.okta.com/oauth2/default"
+   export OKTA_OAUTH2_CLIENT_ID="your-okta-client-id"
+   export OKTA_OAUTH2_CLIENT_SECRET="your-okta-client-secret"
+   export OKTA_OAUTH2_SCOPES="openid,profile,offline_access"
 
-# For macOS and Windows (in PowerShell)
-mvn clean install
+   # Server Port Configuration
+   export SERVER_PORT=8080
 
-# Run the Spring Boot application
-mvn spring-boot:run
+   # Optional: Database Configuration
+   export DATABASE_URL="your-database-url"
+   ```
 
-This will start the backend application, and it should be accessible at http://localhost:8080.
-Step 3: Verify the Application is Running
+   Replace `your-okta-client-id`, `your-okta-client-secret`, and `your-database-url` with the actual values.
 
-    Open a browser and go to http://localhost:8080.
-    You should see the backend application running and should be able to interact with it.
+## Running the Backend
 
-Troubleshooting
+### Building and Running
 
-    If you encounter any errors related to the environment variables, double-check the values of OKTA_OAUTH2_CLIENT_ID, OKTA_OAUTH2_CLIENT_SECRET, and the server port.
-    Ensure that Okta and the database are correctly configured and that you have all necessary permissions to access the resources.
-    If the application isn't starting correctly, check the logs for more details and ensure that you have Maven installed and properly configured.
+Once the environment variables are configured, you can proceed to build and run the backend.
 
-By following these steps, you'll be able to run the backend application locally on both Windows and macOS.
+1. Navigate to the project directory in your Terminal (macOS/Linux) or PowerShell (Windows).
+2. Run the following command to build the project:
+
+   ```bash
+   mvn clean install
+   ```
+
+3. After a successful build, run the application:
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+   The application should start and be accessible on `http://localhost:8080`.
+
+## Verifying Installation
+
+To verify that everything is working correctly, follow these steps:
+
+1. **Access the Login Page**: Open a web browser and go to `http://localhost:8080/login`. You should see the login screen that uses Okta for authentication.
+2. **Access Protected Routes**: After logging in, attempt to navigate to the protected page (`/protected`). You should only be able to access this route if you are authenticated.
+3. **Check API Endpoints**: Verify that the backend API endpoints are functioning as expected by sending test requests using tools like Postman or Curl.
+
+## Troubleshooting
+
+- **CSRF Token Issues**: If you are experiencing CSRF token-related issues, make sure that your frontend application is properly retrieving and sending the CSRF token. Check the network tab in your browser's developer tools to ensure that the token is being included in your requests.
+- **Redirect Loop Errors**: A common issue can be infinite redirects when attempting to access protected routes after logging out. This usually happens if there is a misconfiguration in the security setup, particularly in the `SecurityConfiguration` class. Verify that the logout and login pages are configured correctly and that unauthorized users are redirected properly.
+- **Okta Configuration**: Ensure that your Okta OAuth2 client ID and secret are correctly configured, and that the redirect URIs set in Okta match what your backend expects.
+
+---
+
+If you encounter any other issues, consult the official Spring Security and Okta documentation for additional guidance.
